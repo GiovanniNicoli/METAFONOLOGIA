@@ -1,26 +1,31 @@
+
 import { initializeApp, FirebaseApp } from 'firebase/app';
 import { getFirestore, collection, addDoc, getDocs, query, orderBy, limit, Firestore } from 'firebase/firestore';
-import { firebaseConfig } from '../firebaseConfig';
 import { PlayerScore } from '../types';
 
-let db: Firestore | null = null;
+// Configurazione di Firebase inserita direttamente nel codice per un funzionamento immediato.
+const firebaseConfig = {
+  apiKey: "AIzaSyDQHWZ_Z3Hfx6nX8a86ZxLpeRHg62ce8Is",
+  authDomain: "gioco-metafonologia.firebaseapp.com",
+  projectId: "gioco-metafonologia",
+  storageBucket: "gioco-metafonologia.appspot.com",
+  messagingSenderId: "197150231387",
+  appId: "1:197150231387:web:87b2aff495f3fa3ae0287e",
+};
 
-// A simple check to see if the config is a placeholder or not.
-const isConfigured = firebaseConfig && firebaseConfig.apiKey && firebaseConfig.apiKey !== "AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
+let db: Firestore;
 
-if (isConfigured) {
-    try {
-        const app: FirebaseApp = initializeApp(firebaseConfig);
-        db = getFirestore(app);
-    } catch (e) {
-        console.error("Firebase initialization failed. Please check your firebaseConfig.ts:", e);
-        // db remains null, and the app will show the "Firebase not configured" message.
-    }
+// Inizializzazione di Firebase
+try {
+    const app: FirebaseApp = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+} catch (e) {
+    console.error("Inizializzazione di Firebase fallita:", e);
 }
 
 const getScoresCollection = () => {
     if (!db) {
-        throw new Error("Firebase not configured.");
+        throw new Error("Firebase non è stato inizializzato correttamente.");
     }
     return collection(db, 'scores');
 }
@@ -35,7 +40,13 @@ export const saveScore = async (scoreData: Omit<PlayerScore, 'id' | 'date'>): Pr
 
 export const getScores = async (): Promise<PlayerScore[]> => {
     const scoresCollection = getScoresCollection();
-    const q = query(scoresCollection, orderBy('score', 'desc'), limit(20));
+    // Query aggiornata per ordinare prima per punteggio, poi per numero di parole
+    const q = query(
+        scoresCollection, 
+        orderBy('score', 'desc'),
+        orderBy('settings.wordCount', 'desc'),
+        limit(25)
+    );
     const querySnapshot = await getDocs(q);
     const scores: PlayerScore[] = [];
     querySnapshot.forEach((doc) => {

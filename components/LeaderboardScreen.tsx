@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { getScores } from '../services/firebaseService';
 import { PlayerScore, ActivityType, PresentationMode, WordType } from '../types';
@@ -40,12 +41,8 @@ const LeaderboardScreen: React.FC<{ onGoHome: () => void }> = ({ onGoHome }) => 
                 const fetchedScores = await getScores();
                 setScores(fetchedScores);
             } catch (err: any) {
-                console.error(err);
-                if (err.message === "Firebase not configured.") {
-                    setError("La configurazione di Firebase è mancante o non valida. Aggiungi le tue credenziali nel file `firebaseConfig.ts` per abilitare la classifica.");
-                } else {
-                    setError("Impossibile caricare la classifica. Assicurati che l'indice di Firestore sia stato creato. Se l'errore persiste, controlla la console per un link per crearlo.");
-                }
+                console.error("Errore nel caricamento della classifica:", err);
+                setError("Impossibile caricare la classifica. La causa più comune è un indice mancante su Firebase. Controlla la console degli errori del browser (tasto F12): potrebbe esserci un link per creare l'indice automaticamente.");
             } finally {
                 setLoading(false);
             }
